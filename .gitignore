@@ -1,0 +1,30 @@
+# Игнорируемые файлы
+
+# Скомпилированные бинарники
+main
+*.out
+a_t
+hf
+hfm
+lru
+lrum
+po
+pol
+polish
+romm
+set
+set_connect
+
+# Core dumps
+core.*
+
+# Временные файлы
+*.o
+*.tmp
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
