@@ -6,7 +6,7 @@ HuffNode::HuffNode(HuffNode* l, HuffNode* r) : ch(0), freq(l->freq + r->freq), l
 
 void insertSorted(DoublyLinkedList<HuffNode*>& list, HuffNode* node) {
     auto cur = list.head;
-    while (cur && cur->value->freq < node->freq) cur = cur->next;
+    while (cur && cur->value->freq <= node->freq) cur = cur->next;
 
     if (!cur) list.addTail(node);
     else list.addBeforeValue(cur->value, node);
@@ -14,45 +14,78 @@ void insertSorted(DoublyLinkedList<HuffNode*>& list, HuffNode* node) {
 
 void buildCodes(HuffNode* root, const string& prefix, HashTable<char, string>& codes) {
     if (!root) return;
-    if (!root->left && !root->right && root->ch != 0) {
-        codes.put(root->ch, prefix);
+    if (!root->left && !root->right) {
+        string code = prefix.empty() ? "0" : prefix;
+        codes.put(root->ch, code);
         return;
     }
-    buildCodes(root->left, prefix + "0", codes);
-    buildCodes(root->right, prefix + "1", codes);
+    if (root->left) buildCodes(root->left, prefix + "0", codes);
+    if (root->right) buildCodes(root->right, prefix + "1", codes);
 }
 
-HashTable<char, string> huffman(const string& text) {
+HuffmanResult huffman(const string& text) {
     int freq[256] = {0};
     for (char c : text) freq[(unsigned char)c]++;
 
     DoublyLinkedList<HuffNode*> list;
     for (int i = 0; i < 256; ++i) {
-        if (freq[i] > 0) list.addTail(new HuffNode((char)i, freq[i]));
+        if (freq[i] > 0) {
+            insertSorted(list, new HuffNode((char)i, freq[i]));
+        }
     }
 
-    DoublyLinkedList<HuffNode*> sortedList;
-    auto cur = list.head;
-    while (cur) {
-        insertSorted(sortedList, cur->value);
-        cur = cur->next;
+    // Особый случай: только один уникальный символ
+    if (list.length() == 1) {
+        HashTable<char, string> codes;
+        codes.put(list.head->value->ch, "0");
+        HuffmanResult result;
+        result.codes = codes;
+        result.root = list.head->value;
+        return result;
     }
 
-    while (sortedList.length() > 1) {
-        HuffNode* first = sortedList.head->value;
-        HuffNode* second = sortedList.head->next->value;
+    while (list.length() > 1) {
+        HuffNode* first = list.head->value;
+        HuffNode* second = list.head->next->value;
 
         HuffNode* parent = new HuffNode(first, second);
 
-        sortedList.deleteHead();
-        sortedList.deleteHead();
+        list.deleteHead();
+        list.deleteHead();
 
-        insertSorted(sortedList, parent);
+        insertSorted(list, parent);
     }
 
-    HuffNode* root = sortedList.head->value;
+    HuffNode* root = list.head->value;
 
     HashTable<char, string> codes;
     buildCodes(root, "", codes);
-    return codes;
+    
+    HuffmanResult result;
+    result.codes = codes;
+    result.root = root;
+    return result;
+}
+
+string huffmanDecode(const string& encoded, HuffNode* root) {
+    if (!root) return "";
+    
+    string result;
+    HuffNode* current = root;
+    
+    for (char bit : encoded) {
+        if (bit == '0') {
+            current = current->left;
+        } else if (bit == '1') {
+            current = current->right;
+        }
+        
+        // Если достигли листа
+        if (!current->left && !current->right) {
+            result += current->ch;
+            current = root; // Возвращаемся к корню
+        }
+    }
+    
+    return result;
 }

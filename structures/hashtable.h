@@ -21,13 +21,50 @@ private:
     HashEntry<K, V>* table[SIZE];
 
     int hash(K key) const {
-        int h = (int)key % SIZE;
-        return (h < 0) ? -h : h;
+        unsigned char uc = (unsigned char)key;
+        return uc % SIZE;
     }
 
 public:
     HashTable() {
         for (int i = 0; i < SIZE; ++i) table[i] = nullptr;
+    }
+
+    // Конструктор копирования
+    HashTable(const HashTable& other) {
+        for (int i = 0; i < SIZE; ++i) table[i] = nullptr;
+        for (int i = 0; i < SIZE; ++i) {
+            HashEntry<K, V>* e = other.table[i];
+            while (e) {
+                put(e->key, e->value);
+                e = e->next;
+            }
+        }
+    }
+
+    // Оператор присваивания
+    HashTable& operator=(const HashTable& other) {
+        if (this != &other) {
+            // Очищаем текущую таблицу
+            for (int i = 0; i < SIZE; ++i) {
+                HashEntry<K, V>* e = table[i];
+                while (e) {
+                    HashEntry<K, V>* next = e->next;
+                    delete e;
+                    e = next;
+                }
+                table[i] = nullptr;
+            }
+            // Копируем из другой таблицы
+            for (int i = 0; i < SIZE; ++i) {
+                HashEntry<K, V>* e = other.table[i];
+                while (e) {
+                    put(e->key, e->value);
+                    e = e->next;
+                }
+            }
+        }
+        return *this;
     }
 
     ~HashTable() {
@@ -63,7 +100,7 @@ public:
             if (e->key == key) return e->value;
             e = e->next;
         }
-        return V(); // Returns default value (nullptr for pointers, "" for string)
+        return V();
     }
 
     void remove(K key) {

@@ -17,9 +17,15 @@ struct HuffNode {
     HuffNode(HuffNode* l, HuffNode* r);
 };
 
+struct HuffmanResult {
+    HashTable<char, string> codes;
+    HuffNode* root;
+};
+
 void insertSorted(DoublyLinkedList<HuffNode*>& list, HuffNode* node);
 void buildCodes(HuffNode* root, const string& prefix, HashTable<char, string>& codes);
-HashTable<char, string> huffman(const string& text);
+HuffmanResult huffman(const string& text);
+string huffmanDecode(const string& encoded, HuffNode* root);
 
 #endif
 

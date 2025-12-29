@@ -1,8 +1,8 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <vector>
 #include <string>
+#include <chrono>
 #include "structures/stack.h"
 #include "structures/dll.h"
 #include "algorithms/huffman.h"
@@ -106,26 +106,25 @@ int main(int argc, char* argv[]) {
             break;
         }
         case 3:{
+            int n;
+            cout << "Введите количество множеств: ";
+            cin >> n;
+            
             Array<Set> sets;
-            for (int i = 0; i < 4; ++i)
+            for (int i = 0; i < n; ++i)
                 sets.push_back(Set());
 
-            sets[0].add(1);
-            sets[0].add(2);
-            sets[0].add(3);
-
-            sets[1].add(2);
-            sets[1].add(3);
-            sets[1].add(4);
-
-            sets[2].add(5);
-            sets[2].add(6);
-            sets[2].add(7);
-
-            sets[3].add(3);
-            sets[3].add(7);
-            sets[3].add(5);
-            sets[3].add(6);
+            for (int i = 0; i < n; ++i) {
+                int count;
+                cout << "Введите количество элементов для множества " << (i+1) << ": ";
+                cin >> count;
+                cout << "Введите элементы: ";
+                for (int j = 0; j < count; ++j) {
+                    int val;
+                    cin >> val;
+                    sets[i].add(val);
+                }
+            }
 
             findMaxIntersection(sets);
             break;
@@ -159,11 +158,11 @@ int main(int argc, char* argv[]) {
                 break;
             }
         
-            HashTable<char, string> codes = huffman(text);
+            HuffmanResult result = huffman(text);
         
             string encoded;
             for (char c : text) {
-                string code = codes.get(c);
+                string code = result.codes.get(c);
                 if (code.empty()) {
                     cerr << "Ошибка: не найден код для символа '" << c << "'" << endl;
                     break;
@@ -174,13 +173,22 @@ int main(int argc, char* argv[]) {
             cout << "\nЗакодированная строка: " << encoded << endl;
             cout << "\nТаблица кодов:" << endl;
         
+            bool printed[256] = {false};
             for (char c : text) {
-                string code = codes.get(c);
-                if (!code.empty()) {
-                    cout << c << " : " << code << endl;
-                    codes.put(c, "");
+                unsigned char uc = (unsigned char)c;
+                if (!printed[uc]) {
+                    string code = result.codes.get(c);
+                    if (!code.empty()) {
+                        cout << c << " : " << code << endl;
+                        printed[uc] = true;
+                    }
                 }
             }
+            
+            // Декодирование
+            string decoded = huffmanDecode(encoded, result.root);
+            cout << "\nДекодированная строка: " << decoded << endl;
+            cout << "Декодирование " << (decoded == text ? "успешно" : "неудачно") << "!" << endl;
         
             break;
         }
@@ -198,6 +206,9 @@ int main(int argc, char* argv[]) {
 
             string roman = converter.intToRoman(number);
             cout << "Римская запись: " << roman << endl;
+            
+            // Запуск сравнения хеш-таблиц
+            converter.benchmarkHashTables(number);
             break;
         }
         case 7:{
@@ -209,7 +220,7 @@ int main(int argc, char* argv[]) {
             cin.ignore();
 
             LRUCache cache(cap);
-            vector<int> output;
+            Array<int> output;
 
             cout << "Введите запросы (SET x y / GET x):\n";
             for (int i = 0; i < Q; ++i) {
@@ -239,8 +250,8 @@ int main(int argc, char* argv[]) {
             }
 
             cout << "Результаты GET:\n";
-            for (int val : output)
-                cout << val << " ";
+            for (int i = 0; i < output.size(); ++i)
+                cout << output[i] << " ";
             cout << endl;
             break;
         }

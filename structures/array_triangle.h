@@ -1,7 +1,6 @@
 #ifndef ARRAY_TRIANGLE_H
 #define ARRAY_TRIANGLE_H
 #include <iostream>
-#include <algorithm>
 using namespace std;
 
 struct Block {
@@ -77,6 +76,7 @@ public:
     }
 };
 
+void quickSort(Block* arr, int left, int right);
 long long maxPyramidHeight(Array<Block>& blocks);
 
 #endif 
